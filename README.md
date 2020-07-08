@@ -5,4 +5,4 @@ backend
 using jee servlets, phpmyadmin sql, entities, mysql-driver (connector) and tomcat server.
 
 frontend
-using Vue.js (sigle page, several componenet ) and AJAX (axios) 
+using Vue.js (single page, several componenes ) and AJAX (axios) 

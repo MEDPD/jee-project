@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>App</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+<style>
+	body{
+		width: 100%;
+		display:grid;
+		justify-content: center;
+		align-items: center;
+	}
+	.main{
+		margin-top : 100px;
+		width: 400px;
+	}
+</style>
+</head>
+<body>
+	
+
+
+<div id="root">
+	
+		<!-- NAV Bar -->
+		
+	 <div class="tabs" style="margin-top: 15px">
+	  <ul>
+	    <li :class="showInscriptionComponent == true ? 'is-active' : ''"  @click="displayInscriptionComponent()"><a>Insciption d'étudiant</a></li>
+	    <li :class="showAdminComponent == true ? 'is-active' : '' "  @click="displayAdminComponent()"><a>Admin</a></li>
+	  </ul>
+	</div>
+	
+	<!--  Inscription Component -->
+	
+	<inscription inline-template  v-show="showInscriptionComponent">
+		<div class = "main">
+			<div class="field">
+  				<label class="label">Prénom</label>
+  				<div class="control has-icons-left has-icons-right">
+   					 <input class="input " type="text" placeholder="Votre prénom" v-model="prenom">
+    				<span class="icon is-small is-left">
+      					<i class="fas fa-user"></i>
+   					</span>
+    				<!-- <span class="icon is-small is-right">
+      					<i class="fas fa-check"></i>
+   					</span> -->
+ 	   			</div>
+ 	   		</div>
+ 	   		
+ 	   		<div class="field">
+  				<label class="label">Nom</label>
+  				<div class="control has-icons-left has-icons-right">
+   					 <input class="input " type="text" placeholder="Votre nom" v-model="nom">
+    				<span class="icon is-small is-left">
+      					<i class="fas fa-user"></i>
+   					</span>
+    				<!-- <span class="icon is-small is-right">
+      					<i class="fas fa-check"></i>
+   					</span> -->
+ 	   			</div>
+ 	   		</div>
+ 	   		
+ 	   		<div class="field">
+  				<label class="label">Date de Naissance</label>
+  				<div class="control has-icons-left has-icons-right">
+   					 <input class="input " type="text" placeholder="Votre date de naissance" v-model="dateNaissance">
+    				<span class="icon is-small is-left">
+      					<i class="fas fa-calendar"></i>
+   					</span>
+    				<!-- <span class="icon is-small is-right">
+      					<i class="fas fa-check"></i>
+   					</span> -->
+ 	   			</div>
+ 	   		</div>
+ 	   		
+	 	   <div class="field">
+			  <label class="label">Filière</label>
+			  <div class="control">
+			    <div class="select">
+			      <select v-model="filiereSelected">
+			        <option disabled value="">Filière</option>
+			        <option v-for="filiere in listFiliere " :key="filiere.code"  :value="filiere.code" >
+			        {{ filiere.nom_filiere }}</option>
+			      </select>
+			    </div>
+			  </div>
+		  </div>
+		  
+			<button class="button is-success" @click="sendData()">S'inscrire</button>
+			
+			<div style="display: grid; justify-content: center">
+				<button class="button is-success is-light" v-if="responseMessage != null">{{ responseMessage }}</button>
+			</div>
+			
+		</div>
+	</inscription>
+	
+	
+	
+	<admin inline-template v-show="showAdminComponent">
+		<div>
+ 			<table class="table" >
+			  <thead class="indigo white-text">
+			    <tr>
+			      <th scope="col">ID</th>
+			      <th scope="col">PRENOM</th>
+			      <th scope="col">NOM</th>
+			      <th scope="col">Date naissance</th>
+			      <th scope="col">Filière</th>
+			      <th scope="col">Actions</th>
+			      
+			    </tr>
+			  </thead>
+			  <tbody>
+  
+			  <tr v-for="(etudiant, index) in etudiants">
+			      <th scope="row">{{ etudiant.code }} </th>
+			      <td>{{ etudiant.prenom }}</td>
+			      <td>{{ etudiant.nom }}</td>
+			      <td>{{ etudiant.birthday }}</td>
+			      <td>{{ getFiliere(etudiant.code_filiere).nom_filiere }}</td>
+			      <td>
+			              
+					  <button  class="button is-danger is-small is-light" @click="deleteEtudiant(etudiant.code, index)">
+					      	Supprimer
+					  </button>
+			          <button class="button is-primary is-small is-light" @click="showModal = true">Modifier</button> 
+			      
+				      <div class="modal " :class="showModal ? 'is-active' : ''">
+						  <div class="modal-background"></div>
+						  <div class="modal-card">
+						    <header class="modal-card-head">
+						      <p class="modal-card-title">Modifier les information de {{ etudiant.prenom }} {{ etudiant.nom }}</p>
+						      <button class="delete" aria-label="close" @click="showModal = false"></button>
+						    </header>
+						    <section class="modal-card-body">
+						      <div class="field">
+				  				<label class="label">Prénom</label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text"  placeholder="Votre prénom" v-model="prenom" >
+				   					 <!-- <input class="input " type="text" v-show="!showModifierPrenom" @ :value="etudiant.prenom"> -->
+				    				<span class="icon is-small is-left">
+				      					<i class="fas fa-user"></i>
+				   					</span>
+				    				<!-- <span class="icon is-small is-right">
+				      					<i class="fas fa-check"></i>
+				   					</span> -->
+				 	   			</div>
+				 	   		  </div>
+				 	   		
+				 	   		  <div class="field">
+				  				<label class="label">Nom</label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text" placeholder="Votre nom" v-model="nom" >
+				    				<span class="icon is-small is-left">
+				      					<i class="fas fa-user"></i>
+				   					</span>
+				 	   			</div>
+				 	   	     </div>
+				 	   		
+				 	   		 <div class="field">
+				  				<label class="label">Date de Naissance</label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text" placeholder="Votre date de naissance"  v-model="dateNaissance">
+				    				<span class="icon is-small is-left">
+				      					<i class="fas fa-calendar"></i>
+				   					</span>
+				    				<!-- <span class="icon is-small is-right">
+				      					<i class="fas fa-check"></i>
+				   					</span> -->
+				 	   			</div>
+				 	   		 </div>
+				 	   		
+					 	     <div class="field">
+							  <label class="label">Filière</label>
+							  <div class="control">
+							    <div class="select">
+							      <select v-model="filiereSelected">
+							        <option disabled style="color: grey" >{{ getFiliere(etudiant.code_filiere).nom_filiere  }}</option>
+							        <option v-for="filiere in filieres " :key="filiere.code"  :value="filiere.code" >
+							        {{ filiere.nom_filiere }}</option>
+							      </select>
+							    </div>
+							  </div>
+						     </div>
+						    </section>
+						    
+						    <footer class="modal-card-foot">
+						      <button class="button is-success" @click="updateEtudiant(etudiant.code, index)">Save changes</button>
+						      <button class="button" @click="showModal = false">Cancel</button>
+						    </footer>
+						  </div>
+					  </div>
+			      </td>
+			    </tr>
+		  </tbody> 
+		  </table>
+			
+		  <div>
+		  <table class="table" >
+			  <thead class="indigo white-text">
+			    <tr>
+			      <th scope="col">ID</th>
+			      <th scope="col">NOM DE FILIERE</th>
+			      <th scope="col">NOMBRE DES ÉTUDINAT</th>
+			      <th scope="col">NOMBRE MAX POSSIBLE DES ÉTUDINAT</th>
+			      <th scope="col">Actions</th>
+			      
+			    </tr>
+			  </thead>
+			  <tbody>
+  
+			  <tr v-for="(filiere, index) in filieres">
+			      <th scope="row">{{ filiere.code }} </th>
+			      <td>{{ filiere.nom_filiere }}</td>
+			      <td>{{ filiere.nombre_etudiant }}</td>
+			      <td>{{ filiere.nombre_etudiant_max }}</td>
+			      <td>
+			              
+					  <button  class="button is-danger is-small is-light" @click="deleteFiliere(filiere.code, index)">
+					      	Supprimer
+					  </button>
+			          <button class="button is-primary is-small is-light" @click="showModalFiliere = true">Modifier</button> 
+			      
+				      <div class="modal " :class="showModalFiliere ? 'is-active' : ''">
+						  <div class="modal-background"></div>
+						  <div class="modal-card">
+						    <header class="modal-card-head">
+						      <p class="modal-card-title">Modifier la Filiere</p>
+						      <button class="delete" aria-label="close" @click="showModalFiliere = false"></button>
+						    </header>
+						    <section class="modal-card-body">
+						      
+				 	   		  <div class="field">
+				  				<label class="label">Nom De Filiere</label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text" placeholder="Votre nom" v-model="nom_filiere" >
+				    				
+				 	   			</div>
+				 	   	     </div>
+				 	   		
+				 	   		 <div class="field">
+				  				<label class="label">Nombre d'étudiant</label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text" placeholder="Votre date de naissance"  v-model="nombre_etudiant">
+				    				
+				 	   			</div>
+				 	   		 </div>
+				 	   		 <div class="field">
+				  				<label class="label">Nombre maximum d'étudiant possible dans cette filiere </label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text" placeholder="Votre date de naissance"  v-model="nombre_etudiant_max">
+				    				
+				 	   			</div>
+				 	   		 </div>
+				 	   		
+					 	     
+						    </section>
+						    
+						    <footer class="modal-card-foot">
+						      <button class="button is-success" @click="updateFiliere(filiere.code, index)">Save changes</button>
+						      <button class="button" @click="showModalFiliere = false">Cancel</button>
+						    </footer>
+						  </div>
+					  </div>
+			      </td>
+			    </tr>
+		  </tbody> 
+		  </table>
+		  		
+		  </div>
+		  <button class="button is-success" @click="showAddModalFiliere = true" style="margin-top:155px">Add Filiere</button>
+		  <div class="modal " :class="showAddModalFiliere ? 'is-active' : ''">
+						  <div class="modal-background"></div>
+						  <div class="modal-card">
+						    <header class="modal-card-head">
+						      <p class="modal-card-title">Ajouter une Filiere</p>
+						      <button class="delete" aria-label="close" @click="showAddModalFiliere = false"></button>
+						    </header>
+						    <section class="modal-card-body">
+						      
+				 	   		  <div class="field">
+				  				<label class="label">Nom De Filiere</label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text" placeholder="Votre nom" v-model="nom_filiere_add" >
+				    				
+				 	   			</div>
+				 	   	     </div>
+				 	   		
+				 	   		 <!-- <div class="field">
+				  				<label class="label">Nombre d'étudiant</label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text" placeholder="Votre date de naissance"  v-model="nombre_etudiant_add">
+				    				
+				 	   			</div>
+				 	   		 </div> -->
+				 	   		 <div class="field">
+				  				<label class="label">Nombre maximum d'étudiant possible dans cette filiere </label>
+				  				<div class="control has-icons-left has-icons-right">
+				   					 <input class="input " type="text" placeholder="Votre date de naissance"  v-model="nombre_etudiant_max_add">
+				    				
+				 	   			</div>
+				 	   		 </div>
+				 	   		
+					 	     
+						    </section>
+						    
+						    <footer class="modal-card-foot">
+						      <button class="button is-success" @click="addFiliere()">Add Filiere</button>
+						      <button class="button" @click="showAddModalFiliere = false">Cancel</button>
+						    </footer>
+						  </div>
+					  </div>
+		</div>
+	</admin>
+</div>
+
+</body>
+
+<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js"></script>
+  <script >
+	
+//inscription Component
+	Vue.component('inscription',{
+			data(){
+					return {
+						prenom : '',
+						nom : '',
+						dateNaissance: "",
+						filiereSelected: "",
+						listFiliere : [],
+						responseMessage : null
+					
+						}
+			},
+			async created(){
+				await this.getFiliere()
+				Event.$on('filiereAdded', async () => {await this.getFiliere()})
+			},
+			methods : {
+				async getFiliere(){
+					try {
+		                  
+		                  let res = await axios.get('/GestionDeFiliere/filieres') 
+		                  console.table(res.data)
+		                  this.listFiliere = res.data 
+		              } catch (error) {
+		                  console.log('type error here  -> ', error)
+		              }
+		              
+				},
+				async sendData(){
+
+					
+					/* let form = new FormData()
+					form.append('prenom', this.prenom)
+					form.append('nom', this.nom)
+					form.append('dateNaissance', this.dateDeNaissance)
+					form.append('filiere', 'genie logiciel') */
+					/* console.log(form.get("nom")) */
+					try {
+		                  
+		                  let res = await axios.get('/GestionDeFiliere/inscription',{
+			                  params:  {
+									'prenom' : this.prenom,
+									'nom': this.nom,
+									'dateNaissance' : this.dateNaissance,
+									'code_filiere' : this.filiereSelected
+				                  }
+
+			                 }) 
+		                    console.log('inscription Servlet response -> ', res.data)
+		                    /* this.listMsg = res.data */
+		                    if(res.data == "Done"){  
+			                    Event.$emit('etudiantAdded')
+								Event.$emit('filiereAdded')
+								this.responseMessage = res.data
+								setTimeout(() => {
+										this.responseMessage = null
+								}, 2 * 1000)
+			                 }
+		              } catch (error) {
+		                  console.log('send data error  -> ', error)
+		              }
+				}	
+			}
+		})
+		
+  	  		// Admin Component
+  	  		
+  	  		Vue.component('admin',{
+				data(){
+					return {
+						etudiants : [],
+						filieres : [],
+						
+						showModal : false,
+						showModalFiliere : false,
+						showAddModalFiliere : false,
+						
+						prenom : '',
+						nom : '',
+						dateNaissance: "",
+						filiereSelected: "",
+						
+						nom_filiere : '',
+						nombre_etudiant :'',
+						nombre_etudiant_max : '',
+
+						nom_filiere_add : '',
+						nombre_etudiant_max_add : ''
+					
+					}
+				},
+				async created(){
+					
+					
+					await this.getEtudiants()
+					await this.getFilieres()
+					Event.$on('etudiantAdded', async () => { await this.getEtudiants() })
+					Event.$on('filiereAdded', async () => {await this.getFilieres()})
+				},
+				methods : {
+					async getEtudiants(){
+						try {
+			                  
+			                  let res = await axios.get('/GestionDeFiliere/etudiants') 
+			                  console.table(res.data)
+			                  this.etudiants = res.data
+			              } catch (error) {
+			                  console.log('getEtudinats error  -> ', error)
+			              }
+							
+					},
+					async getFilieres(){
+						try {
+			                  
+			                  let res = await axios.get('/GestionDeFiliere/filieres') 
+			                  console.table(res.data)
+			                  this.filieres = res.data 
+			              } catch (error) {
+			                  console.log('type error here  -> ', error)
+			              }
+			              
+					},
+					async deleteEtudiant(codeEtudiant, index){
+						try {
+			                  
+			                  let res = await axios.get('/GestionDeFiliere/deleteEtudiant',{params : { etudiant_code : codeEtudiant}}) 
+			                  console.table(" delete etudiant -> ", res.data)
+			                  if(res.data == "Done") { 
+				                  this.etudiants.splice(index, 1)
+				                  Event.$emit('filiereAdded')
+			                  }
+			              } catch (error) {
+			                  console.log(' delete etudiant error  -> ', error)
+			              }
+					},
+					getFiliere(codeFiliere){
+							return this.filieres.filter(filiere => filiere.code == codeFiliere)[0]
+					},
+					async updateEtudiant(code, index){
+						let prenom =  this.prenom == '' ?this.etudiants[index].prenom : this.prenom,
+							nom = this.nom == '' ? this.etudiants[index].nom : this.nom,
+							dateNaissance = this.dateNaissance == '' ?  this.etudiants[index].birthday : this.dateNaissance,
+							filiereSelected = this.filiereSelected == '' ? this.etudiants[index].code_filiere : this.filiereSelected
+										
+						try {
+		                  
+		                  let res = await axios.get('/GestionDeFiliere/updateEtudiant',{
+			                  params:  {
+				                  	'code': code,
+									'prenom' : prenom,
+									'nom': nom,
+									'dateNaissance' : dateNaissance,
+									'code_filiere' : filiereSelected
+				                  }
+
+			                 }) 
+		                    console.log('Updated Etudiant Servlet response -> ', res.data)
+		                    if(res.data == "Done")  Event.$emit('etudiantAdded')
+		                    this.showModal = false
+		              } catch (error) {
+		                  console.log('Updated Etudiant error  -> ', error)
+		              }
+					},
+				async updateFiliere(code, index){
+						let nom_filiere =  this.nom_filiere == '' ? this.filieres[index].nom_filiere : this.nom_filiere,
+								nombre_etudiant = this.nombre_etudiant == '' ? this.filieres[index].nombre_etudiant : this.nombre_etudiant,
+								nombre_etudiant_max = this.nombre_etudiant_max == '' ?  this.filieres[index].nombre_etudiant_max : this.nombre_etudiant_max
+											
+							try {
+			                  
+			                  let res = await axios.get('/GestionDeFiliere/updateFiliere',{
+				                  params:  {
+					                  	'code': code,
+										'nom_filiere' : nom_filiere,
+										'nombre_etudiant': nombre_etudiant,
+										'nombre_etudiant_max' : nombre_etudiant_max
+					                  }
+
+				                 }) 
+			                    console.log('Updated Filiere Servlet response -> ', res.data)
+			                    if(res.data == "Done") Event.$emit('filiereAdded')
+			                     this.showModalFiliere = false
+			              } catch (error) {
+			                  console.log('Updated Filiere error  -> ', error)
+			              }
+				},
+				async addFiliere(){
+					
+						try {
+		                  
+		                  let res = await axios.get('/GestionDeFiliere/addFiliere',{
+			                  params:  {
+									'nom_filiere' : this.nom_filiere_add,
+									'nombre_etudiant_max' : this.nombre_etudiant_max_add
+				                  }
+
+			                 }) 
+		                    console.log('ADD Filiere Servlet response -> ', res.data)
+		                    if(res.data == "Done") Event.$emit('filiereAdded')
+		                     this.showAddModalFiliere = false
+		              } catch (error) {
+		                  console.log('Updated Filiere error  -> ', error)
+		              }
+				
+				
+				},
+				async deleteFiliere(code, index){
+					try {
+		                  
+		                  let res = await axios.get('/GestionDeFiliere/deleteFiliere',{params : { code_filiere : code }}) 
+		                  console.table(" delete etudiant -> ", res.data)
+		                  if(res.data == "Done"){ 
+			                  this.filieres.splice(index, 1)
+									Event.$emit('etudiantAdded')
+			                   }
+		                  
+		              } catch (error) {
+		                  console.log(' delete etudiant error  -> ', error)
+		              }
+				},
+			}
+				
+  	  	  	})
+  	  		
+  	  		
+  	  		
+		var app = new Vue({
+			el: "#root",
+			data : {
+				
+				showInscriptionComponent : true,
+				showAdminComponent : false
+			},
+			methods : {
+				displayInscriptionComponent(){
+					 this.showInscriptionComponent = !this.showInscriptionComponent
+					 this.showAdminComponent = !this.showAdminComponent
+			},
+			displayAdminComponent(){
+				this.showInscriptionComponent = !this.showInscriptionComponent
+				this.showAdminComponent = !this.showAdminComponent
+			}
+				
+			},
+			computed : {
+				
+				
+			}
+			
+			})
+	window.Event = new Vue()
+  </script>
+</html>
